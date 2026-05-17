@@ -16,6 +16,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: update formula
         env:
@@ -29,40 +30,21 @@ jobs:
           FILE="Formula/${FORMULA}.rb"
 
           echo "updating $FILE"
-          echo "  formula: $FORMULA"
-          echo "  version: $VERSION"
-          echo "  url:     $URL"
-          echo "  sha256:  $SHA256"
+          echo "formula: $FORMULA"
+          echo "version: $VERSION"
+          echo "url: $URL"
+          echo "sha256: $SHA256"
 
-          if [ -z "$FORMULA" ]; then
-            echo "ERROR: FORMULA is empty"
-            exit 1
-          fi
+          test -n "$FORMULA" || { echo "ERROR: FORMULA is empty"; exit 1; }
+          test -n "$VERSION" || { echo "ERROR: VERSION is empty"; exit 1; }
+          test -n "$URL" || { echo "ERROR: URL is empty"; exit 1; }
+          test -n "$SHA256" || { echo "ERROR: SHA256 is empty"; exit 1; }
+          test -f "$FILE" || { echo "ERROR: $FILE not found"; exit 1; }
 
-          if [ -z "$VERSION" ]; then
-            echo "ERROR: VERSION is empty"
-            exit 1
-          fi
+          sed -i.bak "s|^[[:space:]]*url \".*\"|  url \"${URL}\"|" "$FILE"
+          sed -i.bak "s|^[[:space:]]*sha256 \".*\"|  sha256 \"${SHA256}\"|" "$FILE"
+          rm -f "$FILE.bak"
 
-          if [ -z "$URL" ]; then
-            echo "ERROR: URL is empty"
-            exit 1
-          fi
-
-          if [ -z "$SHA256" ]; then
-            echo "ERROR: SHA256 is empty"
-            exit 1
-          fi
-
-          if [ ! -f "$FILE" ]; then
-            echo "ERROR: file $FILE not found"
-            exit 1
-          fi
-
-          sed -i "s|url \".*\"|url \"${URL}\"|" "$FILE"
-          sed -i "s|sha256 \".*\"|sha256 \"${SHA256}\"|" "$FILE"
-
-          echo "Git diff:"
           git diff
 
       - name: commit and push
@@ -83,4 +65,4 @@ jobs:
           fi
 
           git commit -m "${FORMULA} v${VERSION}"
-          git push
+          git push origin HEAD:main
