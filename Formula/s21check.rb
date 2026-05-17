@@ -1,8 +1,8 @@
 class S21check < Formula
   desc "School 21 C project checker"
   homepage "https://github.com/s21-tools/s21check"
-  url "https://github.com/s21-tools/s21check/archive/refs/tags/v1.0.4.tar.gz"
-  sha256 "a091c6dd7753a5677800d64386c61313bf51964c233d330a9d6392b967bf56aa"
+  url "https://github.com/s21-tools/s21check/archive/refs/tags/v1.0.5.tar.gz"
+  sha256 "f5e5868de43a9b3bbe35c6ef1b39267725a912864582255fc48a553761ba6bbb"
   license "MIT"
 
   def install
