@@ -1,0 +1,48 @@
+name: update formula
+
+on:
+  repository_dispatch:
+    types: [formula-update]
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout tap
+        uses: actions/checkout@v4
+
+      - name: update formula
+        env:
+          FORMULA: ${{ github.event.client_payload.formula }}
+          VERSION: ${{ github.event.client_payload.version }}
+          URL: ${{ github.event.client_payload.url }}
+          SHA256: ${{ github.event.client_payload.sha256 }}
+        run: |
+          FILE="Formula/${FORMULA}.rb"
+
+          echo "updating $FILE"
+          echo "  version: $VERSION"
+          echo "  url:     $URL"
+          echo "  sha256:  $SHA256"
+
+          # обновляем url — ищем строку с archive/refs/tags и заменяем
+          sed -i "s|url \".*\"|url \"${URL}\"|" "$FILE"
+
+          # обновляем sha256
+          sed -i "s|sha256 \".*\"|sha256 \"${SHA256}\"|" "$FILE"
+
+          # показываем что изменилось
+          git diff
+
+      - name: commit and push
+        env:
+          FORMULA: ${{ github.event.client_payload.formula }}
+          VERSION: ${{ github.event.client_payload.version }}
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add "Formula/${FORMULA}.rb"
+          git commit -m "${FORMULA} v${VERSION}"
+          git push
